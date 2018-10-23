@@ -1,0 +1,10 @@
+version: "3"
+services:
+  dynalist-automator:
+    image: node:alpine
+    restart: on-failure
+    environment:
+      - DYNALIST_TOKEN
+    volumes:
+      - .:/app
+    command: node /app/dist/index.js
