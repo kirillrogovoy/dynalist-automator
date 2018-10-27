@@ -27,8 +27,8 @@ export class Task {
       }
     }
 
-    const isFocus = this.project.note.includes('#focus')
-    return `${prefix}${this.getTitle()} ${isFocus ? '#focus' : ''}`.trim()
+    const tags = getTags(this.project.note)
+    return `${prefix}${this.getTitle()} ${tags.join(' ')}`.trim()
   }
 
   public getNote () {
@@ -55,4 +55,18 @@ export class Task {
 
     return `🍏 ${this.gtdNode.content.trim()}`
   }
+}
+
+function getTags (input: string) {
+  const regexp = /\#\w+/g
+  const result = []
+  while (true) {
+    const match = regexp.exec(input)
+    if (!match) {
+      break
+    }
+    result.push(match[0])
+  }
+
+  return result
 }

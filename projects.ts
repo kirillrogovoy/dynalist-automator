@@ -9,11 +9,15 @@ export function getGTDProjects (fileInfo: FileInfo) {
       for (let horizon3Node of horizon4Node.children) {
         const horizon3Projects = horizon3Node.child('Projects')
         if (horizon3Projects) {
-          gtdProjects.push(...horizon3Projects.children.filter(p => !p.checked))
+          gtdProjects.push(...horizon3Projects.children.filter(isActive))
         }
       }
     }
   }
 
   return gtdProjects
+}
+
+function isActive (project: NodeTree) {
+  return !project.checked && !project.note.match(/suspended/i)
 }
