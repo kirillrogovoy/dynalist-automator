@@ -7,6 +7,7 @@ export interface FileInfo {
 }
 
 export const fileIDByTitle = {
+  inbox: 'hqSr_w-WJRPQAW6p9Q7BR7cd',
   gtd: 'x6h7Kwv2IIU2Deea48x7DSQY',
   projects: 'eWca1RrxFPY5evUFXQ0n9xOw',
   todo: 'eMtVpRvyXfxDbsfSm5YedeSX',

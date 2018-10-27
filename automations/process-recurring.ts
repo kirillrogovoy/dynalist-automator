@@ -8,7 +8,8 @@ export function processRecurring (
   recurring: FileInfo,
   todo: FileInfo
 ) {
-  const recurringTasksExpected = recurring.nodeTree.child('Current')!.children
+  const recurringTasksExpected = recurring.nodeTree.children.map(t => t.children)
+    .reduce((acc, cur) => [...acc, ...cur], [])
     .map(node => new RecurringTask(node))
 
   const toCreate = recurringTasksExpected.filter(taskExpected =>
@@ -40,7 +41,7 @@ export function processRecurring (
       api.file.change(todo.fileID, [{
         action: 'insert',
         parent_id: taskTarget.id,
-        content: task.node.content,
+        content: `♻️ ${task.node.content}`,
         index: 0,
         note: task.node.note
       }])
@@ -50,6 +51,7 @@ export function processRecurring (
 
   for (let task of toDelete) {
     task.laterSched!.clear()
+    delete recurringTasksActive[recurringTasksActive.indexOf(task)]
   }
 
   const putWarningChanges: NodeChangeEdit[] = []
