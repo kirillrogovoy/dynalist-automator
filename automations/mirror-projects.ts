@@ -18,17 +18,20 @@ export function mirrorProjects (gtd: FileInfo, projects: FileInfo) {
   const gtdProjectInfos = gtdProjects.map(gtdProject => {
     const objective = gtdProject.parent!.parent!
     const isSkyeng = objective.content.includes('Skyeng')
-    const isFocus = gtdProject.note.includes('#focus')
 
     const parentNode = isSkyeng
       ? skyengProjects
       : personalProjects
 
+    const objectiveNote = isSkyeng
+      ? ''
+      : `Objective: ${objective.url}`
+
     return {
       gtdProject,
       parentNode,
-      content: `${gtdProject.url} ${isFocus ? '#focus' : ''}`.trim(),
-      note: isSkyeng ? '' : `Objective: ${objective.url}`
+      content: `${gtdProject.content} [ ](${gtdProject.url})`.trim(),
+      note: (objectiveNote + ' ' + gtdProject.note).trim()
     }
   })
 

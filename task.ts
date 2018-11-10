@@ -58,7 +58,7 @@ export class Task {
 }
 
 function getTags (input: string) {
-  const regexp = /\#\w+/g
+  const regexp = /\#[\w\u1000-\uFFFF]+/g // support emoji
   const result = []
   while (true) {
     const match = regexp.exec(input)

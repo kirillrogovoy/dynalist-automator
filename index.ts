@@ -10,11 +10,12 @@ import { RecurringTask } from './recurring-task'
 const recurringTaskTimers: RecurringTask[] = []
 
 async function main () {
+  console.log('started')
   const maxFileRequestsPerMinute = 60
   const filesCount = Object.entries(fileIDByTitle).length
   const maxRequestsPerFilePerMinute = maxFileRequestsPerMinute / filesCount
   const bestInterval = 60 / maxRequestsPerFilePerMinute
-  const bestIntervalAdjasted = Math.ceil(bestInterval * 1.2)
+  const bestIntervalAdjasted = Math.ceil(bestInterval * 1.3)
 
   while (true) {
     await Promise.all([
@@ -25,7 +26,6 @@ async function main () {
 }
 
 async function performAllAutomations () {
-  console.log('performing automations')
   let files
   try {
     files = {
@@ -36,10 +36,9 @@ async function performAllAutomations () {
       recurring: await buildFileInfoByID(fileIDByTitle.recurring)
     }
   } catch (e) {
-    console.error('file fetching api error', e)
+    console.error('api request error', e)
     return
   }
-  console.log('got file contents')
 
   const changeBuckets: { fileID: string, changes: NodeChange[] }[] = []
   const changesFromAutomations = [
@@ -64,7 +63,11 @@ async function performAllAutomations () {
     }
   }
 
-  console.log('changes', JSON.stringify(changeBuckets.filter(b => b.changes.length > 0), null, 2))
+  const nonEmptyBuckets = changeBuckets.filter(b => b.changes.length > 0)
+
+  if (nonEmptyBuckets.length > 0) {
+    console.log('changes', JSON.stringify(nonEmptyBuckets, null, 2))
+  }
   for (let bucket of changeBuckets) {
     if (bucket.changes.length > 0) {
       try {
