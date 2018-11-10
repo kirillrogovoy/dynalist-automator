@@ -66,7 +66,8 @@ export function mirrorTodo (gtd: FileInfo, todo: FileInfo) {
 
     return {
       action: 'insert',
-      index: task.getContent().includes('#focus') ? 0 : -1,
+      // index: task.getContent().includes('#focus') ? 0 : -1,
+      index: 0,
       parent_id: parentNode.id,
       content: task.getContent(),
       note: task.getNote()
