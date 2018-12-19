@@ -12,7 +12,8 @@ export const fileIDByTitle = {
   projects: 'eWca1RrxFPY5evUFXQ0n9xOw',
   todo: 'eMtVpRvyXfxDbsfSm5YedeSX',
   waiting: '5-McZ7W8ha1H7lbLLXtr5dG5',
-  recurring: 'KbOzxczoyBO4xkMz_eM0qUK-'
+  recurring: 'KbOzxczoyBO4xkMz_eM0qUK-',
+  history: 'V3ThN0giOoZIxUYCZw4TVKj2'
 }
 
 export async function buildFileInfoByID (fileID: string): Promise<FileInfo> {

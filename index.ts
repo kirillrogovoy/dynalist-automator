@@ -3,6 +3,7 @@ import { mirrorProjects } from './automations/mirror-projects'
 import { mirrorTodo } from './automations/mirror-todo'
 import { mirrorWaiting } from './automations/mirror-waiting'
 import { processRecurring } from './automations/process-recurring'
+import { writeHistory } from './automations/write-history'
 import { backup } from './automations/backup'
 import { buildFileInfoByID, fileIDByTitle } from './file'
 import { RecurringTask } from './recurring-task'
@@ -45,7 +46,8 @@ async function performAllAutomations () {
     mirrorProjects(files.gtd, files.projects),
     mirrorTodo(files.gtd, files.todo),
     mirrorWaiting(files.gtd, files.waiting),
-    processRecurring(recurringTaskTimers, files.recurring, files.todo)
+    processRecurring(recurringTaskTimers, files.recurring, files.todo),
+    writeHistory(fileIDByTitle.history, files)
   ]
 
   for (let changesSet of changesFromAutomations) {
@@ -67,13 +69,13 @@ async function performAllAutomations () {
 
   if (nonEmptyBuckets.length > 0) {
     console.log('changes', JSON.stringify(nonEmptyBuckets, null, 2))
-  }
-  for (let bucket of changeBuckets) {
-    if (bucket.changes.length > 0) {
-      try {
-        api.file.change(bucket.fileID, bucket.changes)
-      } catch (e) {
-        console.error('change api error', e)
+    for (let bucket of nonEmptyBuckets) {
+      if (bucket.changes.length > 0) {
+        try {
+          await api.file.change(bucket.fileID, bucket.changes)
+        } catch (e) {
+          console.error('change api error', e)
+        }
       }
     }
   }

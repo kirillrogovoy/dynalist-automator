@@ -10,6 +10,14 @@ export interface NodeTree {
   checked: boolean
   children: NodeTree[]
   child (title: string): NodeTree | undefined
+  simplify (): NodeTreeSimplified
+}
+
+export interface NodeTreeSimplified {
+  content: string
+  note: string
+  checked: boolean
+  children: { [key: string]: NodeTreeSimplified }
 }
 
 export function buildTree (fileID: string, nodes: Node[]): NodeTree {
@@ -37,6 +45,20 @@ function nodeToNodeTree (
     children: childrenIDs.map(id => nodeToNodeTree(fileID, nodeById, nodeById[id])),
     child (title: string) {
       return this.children.find(c => c.content.trim().endsWith(title))
+    },
+    simplify () {
+      const object: NodeTreeSimplified = {
+        content: this.content,
+        note: this.note,
+        checked: this.checked,
+        children: {}
+      }
+
+      for (let child of this.children) {
+        object.children[child.content] = child.simplify()
+      }
+
+      return object
     }
   }
 
