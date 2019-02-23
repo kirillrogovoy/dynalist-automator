@@ -4,7 +4,6 @@ import { mirrorTodo } from './automations/mirror-todo'
 import { mirrorWaiting } from './automations/mirror-waiting'
 import { processRecurring } from './automations/process-recurring'
 import { writeHistory } from './automations/write-history'
-import { backup } from './automations/backup'
 import { buildFileInfoByID, fileIDByTitle } from './file'
 import { RecurringTask } from './recurring-task'
 

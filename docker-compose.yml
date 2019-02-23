@@ -7,4 +7,5 @@ services:
       - DYNALIST_TOKEN
     volumes:
       - .:/app
+      - /tmp/dynalist-automator:/tmp
     command: node /app/dist/index.js

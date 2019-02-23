@@ -36,6 +36,8 @@ export function writeHistory (
         } as NodeChangeInsert]
       }]
     }
+  } else {
+    writeFileSync(currentStateFile, JSON.stringify(filesSerialized))
   }
 
   return []

@@ -30,7 +30,12 @@ export function processRecurring (
       continue
     }
 
-    const sched = later.parse.text(intervalTextResult[1])
+    let intervalText = intervalTextResult[1]
+    if (!intervalText.includes(' at ')) {
+      intervalText += ' at 04:00'
+    }
+
+    const sched = later.parse.text(intervalText)
     if (sched.error !== -1) {
       toPutWarning.push(task)
       continue

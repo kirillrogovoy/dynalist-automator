@@ -85,6 +85,7 @@ function makeRequest (urlFragment: string, payload: object = {}) {
   const payloadToSend = { ...payloadBase, ...payload }
   const url = buildUrl(urlFragment)
 
+  console.log(url, payloadToSend)
   return fetch(url, {
     method: 'POST',
     body: JSON.stringify(payloadToSend)
