@@ -1,11 +1,9 @@
-import api, { NodeChange } from '../api'
-import { NodeTree } from '../node-tree'
+import { NodeChange } from '../api'
 import { FileInfo } from '../file'
 import { getGTDProjects } from '../projects'
-import { getIDFromURL } from '../node-url'
 
 export function mirrorWaiting (gtd: FileInfo, waiting: FileInfo) {
-  const gtdProjects = getGTDProjects(gtd)
+  const gtdProjects = getGTDProjects(gtd, 'all')
   const boardWaitingTasks = waiting.nodeTree.child('Current')!.children
 
   const nextWaitingTasks: {content: string, note: string}[] = []
@@ -56,5 +54,4 @@ export function mirrorWaiting (gtd: FileInfo, waiting: FileInfo) {
     fileID: waiting.fileID,
     changes: [...deleteChanges, ...insertChanges] as NodeChange[]
   }]
-  return []
 }

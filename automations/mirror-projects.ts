@@ -1,6 +1,4 @@
-import api, { NodeChange } from '../api'
-import { NodeTree } from '../node-tree'
-import { getIDFromURL } from '../node-url'
+import { NodeChange } from '../api'
 import { FileInfo } from '../file'
 import { getGTDProjects } from '../projects'
 
@@ -65,6 +63,50 @@ export function mirrorProjects (gtd: FileInfo, projects: FileInfo) {
 
   return [{
     fileID: projects.fileID,
-    changes: [...deleteChanges, ...insertChanges] as NodeChange[]
+    changes: [...deleteChanges, ...insertChanges, ...mirrorProjectTree(gtd, projects)] as NodeChange[]
+  }]
+}
+
+function mirrorProjectTree (gtd: FileInfo, projects: FileInfo) {
+  const treeNode = projects.nodeTree.child('Tree')
+
+  if (!treeNode || treeNode.children.length > 0) {
+    return []
+  }
+
+  const gtdProjects = getGTDProjects(gtd)
+
+  const tree: any = {}
+  let treeString = ''
+
+  for (let gtdProject of gtdProjects) {
+    const h3 = gtdProject.parent!.parent!
+    const h4 = h3.parent!
+    const h5 = h4.parent!
+
+    tree[h5.content] = tree[h5.content] || {}
+    tree[h5.content][h4.content] = tree[h5.content][h4.content] || {}
+    tree[h5.content][h4.content][h3.content] = tree[h5.content][h4.content][h3.content] || []
+    tree[h5.content][h4.content][h3.content].push(gtdProject.content)
+  }
+
+  for (let h5 in tree) {
+    treeString += h5 + "\n"
+    for (let h4 in tree[h5]) {
+      treeString += "\t" + h4 + "\n"
+      for (let h3 in tree[h5][h4]) {
+        treeString += "\t\t" + h3 + "\n"
+        for (let project of tree[h5][h4][h3]) {
+          treeString += "\t\t\t" + project + "\n"
+        }
+      }
+    }
+  }
+
+  return [{
+    action: 'insert',
+    index: 0,
+    parent_id: treeNode.id,
+    content: treeString,
   }]
 }

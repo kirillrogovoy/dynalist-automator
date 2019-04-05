@@ -43,6 +43,7 @@ export function processRecurring (
 
     const taskTarget = todo.nodeTree.child('Recurring')!
     const timer = later.setInterval(async () => {
+      console.log('adding recurring', task.node.content)
       api.file.change(todo.fileID, [{
         action: 'insert',
         parent_id: taskTarget.id,

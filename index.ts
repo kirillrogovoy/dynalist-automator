@@ -46,7 +46,7 @@ async function performAllAutomations () {
     mirrorTodo(files.gtd, files.todo),
     mirrorWaiting(files.gtd, files.waiting),
     processRecurring(recurringTaskTimers, files.recurring, files.todo),
-    writeHistory(fileIDByTitle.history, files)
+    // writeHistory(fileIDByTitle.history, files)
   ]
 
   for (let changesSet of changesFromAutomations) {

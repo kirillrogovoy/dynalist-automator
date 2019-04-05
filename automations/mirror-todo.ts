@@ -1,4 +1,4 @@
-import api, { NodeChange } from '../api'
+import { NodeChange } from '../api'
 import { NodeTree } from '../node-tree'
 import { FileInfo } from '../file'
 import { getGTDProjects } from '../projects'

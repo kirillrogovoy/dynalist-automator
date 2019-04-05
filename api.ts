@@ -61,31 +61,46 @@ export interface NodeChangeDelete {
   node_id: string
 }
 
+interface Request {
+  urlFragment: string;
+  payload: Object;
+}
+
+const requestQueue: Request[] = []
+
 export type NodeChange = NodeChangeInsert | NodeChangeEdit | NodeChangeMove | NodeChangeDelete
 
 export default {
   file: {
     list (): Promise<(File | Folder)[]> {
-      return makeRequest('file/list').then(x => x.files)
+      return makeRequest({ urlFragment: 'file/list', payload: {}}).then(x => x.files)
     },
     content (id: string): Promise<Node[]> {
-      return makeRequest('doc/read', { file_id: id }).then(x => x.nodes)
-    },
-    change (id: string, changes: NodeChange[]): Promise<undefined> {
-      return makeRequest('doc/edit', {
-        file_id: id,
-        changes
+      return makeRequest({
+        urlFragment: 'doc/read',
+        payload: { file_id: id }
       }).then(x => x.nodes)
+    },
+    change (id: string, changes: NodeChange[]) {
+      return queueRequest({
+        urlFragment: 'doc/edit', payload: {
+          file_id: id,
+          changes
+        }
+      })
     }
   }
 }
 
-function makeRequest (urlFragment: string, payload: object = {}) {
-  const payloadBase = { token }
-  const payloadToSend = { ...payloadBase, ...payload }
-  const url = buildUrl(urlFragment)
+function queueRequest (request: Request) {
+  requestQueue.push(request)
+}
 
-  console.log(url, payloadToSend)
+function makeRequest (request: Request) {
+  const payloadBase = { token }
+  const payloadToSend = { ...payloadBase, ...request.payload }
+  const url = buildUrl(request.urlFragment)
+
   return fetch(url, {
     method: 'POST',
     body: JSON.stringify(payloadToSend)
@@ -106,3 +121,18 @@ function makeRequest (urlFragment: string, payload: object = {}) {
 function buildUrl (fragment: string) {
   return url.resolve('https://dynalist.io/api/v1/', fragment)
 }
+
+let pendingRequest: Promise<undefined> | null = null
+
+setInterval(() => {
+  if (pendingRequest) {
+    return
+  }
+
+  const nextRequest = requestQueue.shift()
+
+  if (nextRequest) {
+    pendingRequest = makeRequest(nextRequest)
+    pendingRequest.then(() => { pendingRequest = null })
+  }
+}, 100)
