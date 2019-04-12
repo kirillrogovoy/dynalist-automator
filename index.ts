@@ -80,8 +80,8 @@ async function performAllAutomations () {
   }
 }
 
-function waitForSeconds (seconds: number): Promise<null> {
-  return new Promise(res => setTimeout(() => res(null), 1000 * seconds))
+function waitForSeconds (seconds: number): Promise<void> {
+  return new Promise(res => setTimeout(() => res(), 1000 * seconds))
 }
 
 main().catch(e => {

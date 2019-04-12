@@ -19,3 +19,7 @@ main().catch(e => {
   console.error(e)
   process.exit(1)
 })
+
+setTimeout(() => {
+  process.exit(0)
+}, 5000)
