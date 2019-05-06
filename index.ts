@@ -1,87 +1,52 @@
-import api, { NodeChange } from './api'
-import { mirrorProjects } from './automations/mirror-projects'
-import { mirrorTodo } from './automations/mirror-todo'
-import { mirrorWaiting } from './automations/mirror-waiting'
-import { processRecurring } from './automations/process-recurring'
-import { writeHistory } from './automations/write-history'
-import { buildFileInfoByID, fileIDByTitle } from './file'
-import { RecurringTask } from './recurring-task'
+require('source-map-support').install()
+import { createApi } from './api'
+import { startPolling } from './polling'
+import { startPostingRecurring } from './recurring'
+import { filter, map } from 'rxjs/operators'
+import { nodesToProjects } from './project'
+import { getActivityStream } from './activity'
+import { defineView } from './view'
+import configExample from './config.example'
+import { join } from 'path'
+import { getViews } from './views'
 
-const recurringTaskTimers: RecurringTask[] = []
+async function main() {
+  const firstArg = process.argv[2]
+  if (!firstArg) {
+    console.error('No config file specified')
+    process.exit(1)
+  }
+  const configPath = join(process.cwd(), firstArg)
+  console.log('Trying config file', configPath)
+  const config: typeof configExample = require(configPath)
 
-async function main () {
   console.log('started')
-  const maxFileRequestsPerMinute = 60
-  const filesCount = Object.entries(fileIDByTitle).length
-  const maxRequestsPerFilePerMinute = maxFileRequestsPerMinute / filesCount
-  const bestInterval = 60 / maxRequestsPerFilePerMinute
-  const bestIntervalAdjasted = Math.ceil(bestInterval * 1.3)
 
-  while (true) {
-    await Promise.all([
-      waitForSeconds(bestIntervalAdjasted),
-      performAllAutomations()
-    ])
+  const api = createApi({
+    dynalistToken: config.dynalistToken
+  })
+
+  const pollSubscription = startPolling(api, Object.values(config.files))
+
+  const projects$ = pollSubscription.freshFileContent$.pipe(
+    filter(content => content.fileId === config.files.source),
+    map(content => nodesToProjects(content.nodes))
+  )
+
+  getActivityStream(projects$, '/tmp/dynalistCurrentState.json').subscribe(
+    event => console.log('event', event.type, event.entity.type, event.entity.title, event.type === 'change' ? [event.oldValue, event.newValue]: '')
+  )
+
+  startPostingRecurring(
+    api,
+    pollSubscription,
+    config.recurring.source,
+    config.recurring.target
+  )
+
+  for (let viewDefinition of getViews(config)) {
+    defineView(api, pollSubscription, viewDefinition)
   }
-}
-
-async function performAllAutomations () {
-  let files
-  try {
-    files = {
-      gtd: await buildFileInfoByID(fileIDByTitle.gtd),
-      projects: await buildFileInfoByID(fileIDByTitle.projects),
-      todo: await buildFileInfoByID(fileIDByTitle.todo),
-      waiting: await buildFileInfoByID(fileIDByTitle.waiting),
-      recurring: await buildFileInfoByID(fileIDByTitle.recurring)
-    }
-  } catch (e) {
-    console.error('api request error', e)
-    return
-  }
-
-  const changeBuckets: { fileID: string, changes: NodeChange[] }[] = []
-  const changesFromAutomations = [
-    mirrorProjects(files.gtd, files.projects),
-    mirrorTodo(files.gtd, files.todo),
-    mirrorWaiting(files.gtd, files.waiting),
-    processRecurring(recurringTaskTimers, files.recurring, files.todo),
-    // writeHistory(fileIDByTitle.history, files)
-  ]
-
-  for (let changesSet of changesFromAutomations) {
-    for (let change of changesSet) {
-      let bucket = changeBuckets.find(x => x.fileID === change.fileID)
-      if (!bucket) {
-        bucket = {
-          fileID: change.fileID,
-          changes: []
-        }
-        changeBuckets.push(bucket)
-      }
-
-      bucket.changes.push(...change.changes)
-    }
-  }
-
-  const nonEmptyBuckets = changeBuckets.filter(b => b.changes.length > 0)
-
-  if (nonEmptyBuckets.length > 0) {
-    console.log('changes', JSON.stringify(nonEmptyBuckets, null, 2))
-    for (let bucket of nonEmptyBuckets) {
-      if (bucket.changes.length > 0) {
-        try {
-          await api.file.change(bucket.fileID, bucket.changes)
-        } catch (e) {
-          console.error('change api error', e)
-        }
-      }
-    }
-  }
-}
-
-function waitForSeconds (seconds: number): Promise<void> {
-  return new Promise(res => setTimeout(() => res(), 1000 * seconds))
 }
 
 main().catch(e => {

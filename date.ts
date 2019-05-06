@@ -1,10 +1,10 @@
 const dateRegexp = /\!\((\d{4}-\d{2}-\d{2})\)/
 
-export function hasDate (input: string) {
+export function hasDate(input: string) {
   return dateRegexp.test(input)
 }
 
-export function hasDateInPast (input: string) {
+export function hasDateInPast(input: string) {
   const result = dateRegexp.exec(input)
 
   if (!result || !result[1]) {
@@ -18,12 +18,12 @@ export function hasDateInPast (input: string) {
   return now > date
 }
 
-export function extractDateString (input: string) {
+export function extractDateString(input: string) {
   const result = dateRegexp.exec(input)
 
   if (!result || !result[1]) {
     return null
   }
 
-  return result[0]
+  return result[1]
 }

@@ -1,10 +1,13 @@
 import fetch from 'node-fetch'
-import url from 'url'
+import { resolve } from 'url'
+const Queue = require('promise-queue')
 
-const token = process.env.DYNALIST_TOKEN
-
-if (!token) {
-  throw new Error('env var DYNALIST_TOKEN not found')
+export interface API {
+  file: {
+    list(): Promise<(File | Folder)[]>
+    content(id: string): Promise<Node[]>
+    change(id: string, changes: NodeChange[]): Promise<ChangeResponse>
+  }
 }
 
 export interface File {
@@ -28,8 +31,10 @@ export interface Node {
   id: NodeID
   content: string
   note: string
-  children?: NodeID[]
+  children: NodeID[]
   checked: boolean
+  created: number
+  modified: number
 }
 
 export interface NodeChangeInsert {
@@ -38,7 +43,7 @@ export interface NodeChangeInsert {
   content: string
   index?: number
   note?: string
-  checked?: string
+  checked?: boolean
 }
 
 export interface NodeChangeEdit {
@@ -46,7 +51,7 @@ export interface NodeChangeEdit {
   node_id: string
   content: string
   note?: string
-  checked?: string
+  checked?: boolean
 }
 
 export interface NodeChangeMove {
@@ -61,44 +66,78 @@ export interface NodeChangeDelete {
   node_id: string
 }
 
-interface Request {
-  urlFragment: string;
-  payload: Object;
+export interface Request {
+  dynalistToken: string
+  urlFragment: string
+  payload: Object
 }
 
-const requestQueue: Request[] = []
+export interface ChangeResponse {
+  newNodeIds: string[]
+}
 
-export type NodeChange = NodeChangeInsert | NodeChangeEdit | NodeChangeMove | NodeChangeDelete
+export type NodeChange =
+  | NodeChangeInsert
+  | NodeChangeEdit
+  | NodeChangeMove
+  | NodeChangeDelete
 
-export default {
-  file: {
-    list (): Promise<(File | Folder)[]> {
-      return makeRequest({ urlFragment: 'file/list', payload: {}}).then(x => x.files)
-    },
-    content (id: string): Promise<Node[]> {
-      return makeRequest({
-        urlFragment: 'doc/read',
-        payload: { file_id: id }
-      }).then(x => x.nodes)
-    },
-    change (id: string, changes: NodeChange[]) {
-      return queueRequest({
-        urlFragment: 'doc/edit', payload: {
-          file_id: id,
-          changes
+export type APIOptions = {
+  dynalistToken: string
+}
+
+export function createApi(options: APIOptions): API {
+  const dynalistToken = options.dynalistToken
+  const concurrentTasks = 1
+  const requestQueue = new Queue(concurrentTasks)
+
+  return {
+    file: {
+      list(): Promise<(File | Folder)[]> {
+        return makeRequest({
+          urlFragment: 'file/list',
+          payload: {},
+          dynalistToken
+        }).then(x => x.files)
+      },
+      content(id: string): Promise<Node[]> {
+        return makeRequest({
+          urlFragment: 'doc/read',
+          payload: { file_id: id },
+          dynalistToken
+        }).then(res =>
+          res.nodes.map((node: Node) => ({
+            children: [], // make children always present since the api might not return it
+            ...node
+          }))
+        )
+      },
+      change(id: string, changes: NodeChange[]) {
+        if (changes.length === 0) {
+          return Promise.resolve({
+            newNodeIds: []
+          })
         }
-      })
+        return requestQueue.add(() =>
+          makeRequest({
+            urlFragment: 'doc/edit',
+            payload: {
+              file_id: id,
+              changes
+            },
+            dynalistToken
+          })
+        ).then((responseBody: any): ChangeResponse => ({
+          newNodeIds: responseBody.new_node_ids
+        }))
+      }
     }
   }
 }
 
-function queueRequest (request: Request) {
-  requestQueue.push(request)
-}
-
-function makeRequest (request: Request) {
-  const payloadBase = { token }
-  const payloadToSend = { ...payloadBase, ...request.payload }
+function makeRequest(request: Request) {
+  const token = request.dynalistToken
+  const payloadToSend = { ...request.payload, token }
   const url = buildUrl(request.urlFragment)
 
   return fetch(url, {
@@ -106,33 +145,24 @@ function makeRequest (request: Request) {
     body: JSON.stringify(payloadToSend)
   }).then(async res => {
     if (res.status !== 200) {
-      throw new Error(`HTTP Response with status != 200, ${url}, ${JSON.stringify(payloadToSend)}`)
+      throw new Error(
+        `HTTP Response with status != 200, ${url}, ${JSON.stringify(
+          payloadToSend
+        )}`
+      )
     }
     const body = await res.json()
 
     if (body._code !== 'Ok') {
-      throw new Error(`HTTP Response _code != Ok, ${url}, ${JSON.stringify(body)}`)
+      throw new Error(
+        `HTTP Response _code != Ok, ${url}, ${JSON.stringify(body)}`
+      )
     }
 
     return body
   })
 }
 
-function buildUrl (fragment: string) {
-  return url.resolve('https://dynalist.io/api/v1/', fragment)
+function buildUrl(fragment: string) {
+  return resolve('https://dynalist.io/api/v1/', fragment)
 }
-
-let pendingRequest: Promise<undefined> | null = null
-
-setInterval(() => {
-  if (pendingRequest) {
-    return
-  }
-
-  const nextRequest = requestQueue.shift()
-
-  if (nextRequest) {
-    pendingRequest = makeRequest(nextRequest)
-    pendingRequest.then(() => { pendingRequest = null })
-  }
-}, 100)
