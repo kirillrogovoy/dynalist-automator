@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/deep-diff": "1.0.0",
     "@types/later": "1.2.4",
+    "@types/lunr": "2.3.2",
     "@types/mz": "0.0.32",
     "@types/node": "10.12.0",
     "@types/node-emoji": "1.8.1",
@@ -21,6 +22,7 @@
     "deep-diff": "1.0.2",
     "json-stringify-safe": "5.0.1",
     "later": "1.2.0",
+    "lunr": "2.3.6",
     "mz": "2.7.0",
     "node-emoji": "1.10.0",
     "node-fetch": "2.2.0",

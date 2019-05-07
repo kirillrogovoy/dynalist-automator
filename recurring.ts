@@ -3,7 +3,7 @@ import * as later from 'later'
 import { PollSubscription } from './polling'
 import { filter, map } from 'rxjs/operators'
 import { nodesToMap } from './project'
-import { emojify, unemojify } from 'node-emoji';
+import { emojify, unemojify } from 'node-emoji'
 
 export interface FileNode {
   fileId: string
@@ -27,7 +27,12 @@ export function startPostingRecurring(
     filter(({ fileId }) => fileId === source.fileId),
     map(({ nodes }) => nodesToMap(nodes)),
     map(nodeById =>
-      nodeById.get(source.nodeId)!.children.map(id => nodeById.get(id)!).map(node => node.children).flat().map(id => nodeById.get(id)!)
+      nodeById
+        .get(source.nodeId)!
+        .children.map(id => nodeById.get(id)!)
+        .map(node => node.children)
+        .flat()
+        .map(id => nodeById.get(id)!)
     ),
     map(nodes => nodes.map((node): RecurringTask => ({ node })))
   )

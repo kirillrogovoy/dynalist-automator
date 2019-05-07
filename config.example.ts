@@ -1,6 +1,7 @@
 const files = {
   source: '',
-  views: ''
+  views: '',
+  inbox: ''
 }
 
 export default {
@@ -20,6 +21,6 @@ export default {
     projects: ['', ''],
     todo: ['', ''],
     waiting: ['', ''],
-    q2: '',
+    q2: ''
   }
 }

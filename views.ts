@@ -1,28 +1,33 @@
 import configExample from './config.example'
 import { ViewDefinition, NodeProposal } from './view'
-import { Project } from './project';
-import { getURLFromID } from './node-url';
-import { Node } from './api';
+import { Project } from './project'
+import { getURLFromID } from './node-url'
+import { Node } from './api'
 import { emojify } from 'node-emoji'
 
 export function getViews(config: typeof configExample): ViewDefinition[] {
   const defaultParams = {
-      sourceFileId: config.files.source,
-      targetFileId: config.files.views,
+    sourceFileId: config.files.source,
+    targetFileId: config.files.views
   }
 
-  function generateLifeWorkView(configKey: keyof typeof configExample.views, fn: (projects: Project[]) => NodeProposal[]): [ViewDefinition, ViewDefinition] {
+  function generateLifeWorkView(
+    configKey: keyof typeof configExample.views,
+    fn: (projects: Project[]) => NodeProposal[]
+  ): [ViewDefinition, ViewDefinition] {
     return [
       {
         ...defaultParams,
         targetNodeId: config.views[configKey][0],
-        getList: projects => fn(projects.filter(p => p.objectiveNode.content !== 'Skyeng'))
+        getList: projects =>
+          fn(projects.filter(p => p.objectiveNode.content !== 'Skyeng'))
       },
       {
         ...defaultParams,
         targetNodeId: config.views[configKey][1],
-        getList: projects => fn(projects.filter(p => p.objectiveNode.content === 'Skyeng'))
-      },
+        getList: projects =>
+          fn(projects.filter(p => p.objectiveNode.content === 'Skyeng'))
+      }
     ]
   }
 
@@ -31,9 +36,8 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
   }
 
   return [
-    ...generateLifeWorkView(
-      'projects',
-      projects => projects
+    ...generateLifeWorkView('projects', projects =>
+      projects
         .filter(p => p.status === 'active')
         .sort(byModifiedDate)
         .map(p => ({ content: `${getURLToNode(p.node)} ${p.title}` }))
@@ -48,28 +52,38 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
 
         return [
           ...notDone.sort(byModifiedDate),
-          ...done.sort(byModifiedDate),
-        ].map(p => ({ content: `${getURLToNode(p.node)} ${p.title}`, checked: p.node.checked }))
+          ...done.sort(byModifiedDate)
+        ].map(p => ({
+          content: `${getURLToNode(p.node)} ${p.title}`,
+          checked: p.node.checked
+        }))
       }
     },
-    ...generateLifeWorkView(
-      'todo',
-      projects => projects
+    ...generateLifeWorkView('todo', projects =>
+      projects
         .filter(p => p.status === 'active')
         .sort(byModifiedDate)
         .map(project => {
-          const readyTodos = project.todo.filter(todo => todo.status === 'ready')
-          const plannedTodos = project.todo.filter(todo => todo.status === 'planned')
+          const readyTodos = project.todo.filter(
+            todo => todo.status === 'ready'
+          )
+          const plannedTodos = project.todo.filter(
+            todo => todo.status === 'planned'
+          )
           const todoWarnings =
-            readyTodos.length === 0
-            && plannedTodos.length === 0
-            && project.waiting.filter(w => w.status === 'active').length === 0
+            readyTodos.length === 0 &&
+            plannedTodos.length === 0 &&
+            project.waiting.filter(w => w.status === 'active').length === 0
               ? ['[no next task defined]']
               : []
 
           return [
-            ...readyTodos.map(todo => ({ content: emojify(`:green_apple: ${todo.title}`) })),
-            ...todoWarnings.map(warining => ({ content: emojify(`:warning: ${warining}`) }))
+            ...readyTodos.map(todo => ({
+              content: emojify(`:green_apple: ${todo.title}`)
+            })),
+            ...todoWarnings.map(warining => ({
+              content: emojify(`:warning: ${warining}`)
+            }))
           ].map(p => ({
             ...p,
             note: `${getURLToNode(project.node)} ${project.title}`
@@ -77,13 +91,14 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
         })
         .flat()
     ),
-    ...generateLifeWorkView(
-      'waiting',
-      projects => projects
+    ...generateLifeWorkView('waiting', projects =>
+      projects
         .filter(p => p.status !== 'done')
         .sort(byModifiedDate)
         .map(project => {
-          const waiting = project.waiting.filter(todo => todo.status === 'active')
+          const waiting = project.waiting.filter(
+            todo => todo.status === 'active'
+          )
 
           return waiting.map(w => ({
             content: w.title,
@@ -91,10 +106,10 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
           }))
         })
         .flat()
-    ),
+    )
   ]
 }
 
 function byModifiedDate(a: Project, b: Project) {
-return a.node.modified > b.node.modified ? -1 : 1
+  return a.node.modified > b.node.modified ? -1 : 1
 }

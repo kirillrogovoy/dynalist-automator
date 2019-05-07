@@ -45,7 +45,9 @@ export function nodesToProjects(nodes: Node[]): Project[] {
   const findChild = findChildUsing(nodeById)
 
   const rootNode = nodeById.get('root')!
-  const horizons = findChild(rootNode, node => node.content.includes('Horizons'))!
+  const horizons = findChild(rootNode, node =>
+    node.content.includes('Horizons')
+  )!
 
   const projects = []
 
@@ -208,7 +210,9 @@ function nodesToTodo(
     .filter(node => !node.checked)
   const isReady =
     hasDateInPast(todoNode.content) ||
-    (!hasDate(todoNode.content) && allTodoNodes[0] && todoNode.id === allTodoNodes[0].id)
+    (!hasDate(todoNode.content) &&
+      allTodoNodes[0] &&
+      todoNode.id === allTodoNodes[0].id)
 
   const status = todoNode.checked ? 'done' : isReady ? 'ready' : 'planned'
 
@@ -248,7 +252,8 @@ function nodesToWaiting(
     .map(node => nodeToStringTree(node, nodeById))
     .join('')
 
-  const isActive = !hasDate(waitingNode.content) || hasDateInPast(waitingNode.content)
+  const isActive =
+    !hasDate(waitingNode.content) || hasDateInPast(waitingNode.content)
   const status = waitingNode.checked ? 'done' : isActive ? 'active' : 'planned'
 
   return {

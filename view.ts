@@ -28,7 +28,7 @@ export function defineView(
   )
 
   const proposedNodeList$ = projects$.pipe(
-    map(projects => viewDefinition.getList(projects)),
+    map(projects => viewDefinition.getList(projects))
   )
 
   const currentNodeList$ = pollSubscription.freshFileContent$.pipe(
@@ -42,60 +42,62 @@ export function defineView(
     })
   )
 
-  return combineLatest(currentNodeList$, proposedNodeList$).pipe(
-    filter(([nodes, proposals]) => !isNodesFittingProposals(nodes, proposals)),
-    map(([nodes, proposals]) => {
-      const nodeRemovals = nodes.map(
-        (node): NodeChangeDelete => ({
-          action: 'delete',
-          node_id: node.id
-        })
-      )
+  return combineLatest(currentNodeList$, proposedNodeList$)
+    .pipe(
+      filter(
+        ([nodes, proposals]) => !isNodesFittingProposals(nodes, proposals)
+      ),
+      map(([nodes, proposals]) => {
+        const nodeRemovals = nodes.map(
+          (node): NodeChangeDelete => ({
+            action: 'delete',
+            node_id: node.id
+          })
+        )
 
-      const nodeInserts = proposals.map(
-        (proposal): NodeChangeInsert => ({
-          action: 'insert',
-          parent_id: viewDefinition.targetNodeId,
-          content: proposal.content,
-          note: proposal.note,
-          checked: proposal.checked,
-          index: 9999
-        })
-      )
+        const nodeInserts = proposals.map(
+          (proposal): NodeChangeInsert => ({
+            action: 'insert',
+            parent_id: viewDefinition.targetNodeId,
+            content: proposal.content,
+            note: proposal.note,
+            checked: proposal.checked,
+            index: 9999
+          })
+        )
 
-      return {
-        fileId: viewDefinition.targetFileId,
-        changes: [...nodeInserts, ...nodeRemovals]
-      }
-    }),
-    distinctUntilChanged(), // avoid repeating the same requests
-  ).subscribe(({ fileId, changes }) => {
-    api.file
-      .change(fileId, changes)
-      .catch((e: Error) => {
+        return {
+          fileId: viewDefinition.targetFileId,
+          changes: [...nodeInserts, ...nodeRemovals]
+        }
+      }),
+      distinctUntilChanged() // avoid repeating the same requests
+    )
+    .subscribe(({ fileId, changes }) => {
+      api.file.change(fileId, changes).catch((e: Error) => {
         if (e.toString().includes("Can't find node with id")) {
           return
         }
         throw e
       })
-  })
+    })
 }
 
 function isNodesFittingProposals(nodes: Node[], proposals: NodeProposal[]) {
   const nodesStripped = nodes.map(node => ({
     content: node.content,
     note: node.note || '',
-    checked: Boolean(node.checked),
+    checked: Boolean(node.checked)
   }))
 
   proposals = proposals.map(proposal => ({
     content: proposal.content,
     note: proposal.note || '',
-    checked: Boolean(proposal.checked),
+    checked: Boolean(proposal.checked)
   }))
 
   // if (JSON.stringify(nodesStripped) !== JSON.stringify(proposals)) {
-    // console.log('diff', JSON.stringify(nodesStripped, null, 2), JSON.stringify(proposals, null, 2))
+  // console.log('diff', JSON.stringify(nodesStripped, null, 2), JSON.stringify(proposals, null, 2))
   // }
 
   return JSON.stringify(nodesStripped) === JSON.stringify(proposals)

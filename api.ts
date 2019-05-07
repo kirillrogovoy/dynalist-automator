@@ -118,18 +118,22 @@ export function createApi(options: APIOptions): API {
             newNodeIds: []
           })
         }
-        return requestQueue.add(() =>
-          makeRequest({
-            urlFragment: 'doc/edit',
-            payload: {
-              file_id: id,
-              changes
-            },
-            dynalistToken
-          })
-        ).then((responseBody: any): ChangeResponse => ({
-          newNodeIds: responseBody.new_node_ids
-        }))
+        return requestQueue
+          .add(() =>
+            makeRequest({
+              urlFragment: 'doc/edit',
+              payload: {
+                file_id: id,
+                changes
+              },
+              dynalistToken
+            })
+          )
+          .then(
+            (responseBody: any): ChangeResponse => ({
+              newNodeIds: responseBody.new_node_ids
+            })
+          )
       }
     }
   }
@@ -145,14 +149,15 @@ function makeRequest(request: Request) {
     body: JSON.stringify(payloadToSend)
   }).then(async res => {
     if (res.status !== 200) {
+      const body = (await res.blob()).toString()
       throw new Error(
-        `HTTP Response with status != 200, ${url}, ${JSON.stringify(
+        `HTTP Response with status = ${res.status}, ${url}, ${JSON.stringify(
           payloadToSend
-        )}`
+        )}, ${JSON.stringify(body)}`
       )
     }
-    const body = await res.json()
 
+    const body = await res.json()
     if (body._code !== 'Ok') {
       throw new Error(
         `HTTP Response _code != Ok, ${url}, ${JSON.stringify(body)}`

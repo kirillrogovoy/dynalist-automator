@@ -3,3 +3,4 @@ dist
 backup
 .cache
 config*.js
+tmp

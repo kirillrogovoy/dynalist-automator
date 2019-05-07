@@ -51,7 +51,19 @@ function getContentOfMultipleFiles(
 ): Promise<PollFileContent[]> {
   return Promise.all(
     fileIds.map(fileId =>
-      api.file.content(fileId).then(nodes => ({ fileId, nodes }))
+      api.file
+        .content(fileId)
+        .then(nodes => ({ fileId, nodes }))
+        .catch((e: Error) => {
+          if (e.toString().includes('status = 520')) {
+            return {
+              fileId,
+              nodes: []
+            }
+          }
+
+          throw e
+        })
     )
   )
 }

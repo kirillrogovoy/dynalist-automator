@@ -26,7 +26,10 @@ async function main() {
     dynalistToken: config.dynalistToken
   })
 
-  const pollSubscription = startPolling(api, Object.values(config.files))
+  const pollSubscription = startPolling(api, [
+    config.files.source,
+    config.files.views
+  ])
 
   const projects$ = pollSubscription.freshFileContent$.pipe(
     filter(content => content.fileId === config.files.source),
@@ -34,7 +37,14 @@ async function main() {
   )
 
   getActivityStream(projects$, '/tmp/dynalistCurrentState.json').subscribe(
-    event => console.log('event', event.type, event.entity.type, event.entity.title, event.type === 'change' ? [event.oldValue, event.newValue]: '')
+    event =>
+      console.log(
+        'event',
+        event.type,
+        event.entity.type,
+        event.entity.title,
+        event.type === 'change' ? [event.oldValue, event.newValue] : ''
+      )
   )
 
   startPostingRecurring(
