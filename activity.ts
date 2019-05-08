@@ -1,6 +1,11 @@
 import { Observable, of } from 'rxjs'
-import { Project, Entity, projectsToFlatEntities } from './project'
-import { flatMap } from 'rxjs/operators'
+import {
+  Project,
+  Entity,
+  projectsToFlatEntities,
+  HISTORY_NODE_TITLE
+} from './project'
+import { flatMap, share } from 'rxjs/operators'
 import { exists, readFile, writeFile } from 'mz/fs'
 import { diff } from 'deep-diff'
 
@@ -56,7 +61,7 @@ export function getActivityStream(
       const changes =
         diff(localStateFlat, newStateFlat, (path, key) => {
           return (
-            ['node', 'projectNode'].includes(key) ||
+            ['node', 'projectNode', 'history', 'historyNodeId'].includes(key) ||
             (path.length === 1 && ['todo', 'waiting'].includes(key))
           )
         }) || []
@@ -100,6 +105,7 @@ export function getActivityStream(
       })
 
       return of(...activityEvents)
-    })
+    }),
+    share()
   )
 }

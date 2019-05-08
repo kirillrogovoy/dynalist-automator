@@ -106,6 +106,14 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
           }))
         })
         .flat()
+    ),
+    ...generateLifeWorkView('history', projects =>
+      projects
+        .map(project => project.history)
+        .flat()
+        .filter(
+          node => Date.now() - node.created < 2592000000 /* 3 days in ms */
+        )
     )
   ]
 }

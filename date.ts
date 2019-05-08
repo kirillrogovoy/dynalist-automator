@@ -1,3 +1,5 @@
+import { format } from 'date-fns'
+
 const dateRegexp = /\!\((\d{4}-\d{2}-\d{2})\)/
 
 export function hasDate(input: string) {
@@ -26,4 +28,8 @@ export function extractDateString(input: string) {
   }
 
   return result[1]
+}
+
+export function dateToDynalistFormat(date: Date) {
+  return `!(${format(date, 'YYYY-MM-DD HH:mm:ss')})`
 }

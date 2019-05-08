@@ -1,6 +1,8 @@
 import { Node } from './api'
 import { extractDateString, hasDateInPast, hasDate } from './date'
 
+export const HISTORY_NODE_TITLE = 'History'
+
 export type Entity = Project | Todo | Waiting
 
 export interface Project {
@@ -14,7 +16,8 @@ export interface Project {
   waiting: Waiting[]
   deadline?: Date
   informationString: string
-  logsNodeId?: string
+  historyNodeId?: string
+  history: Node[]
 }
 
 export interface Todo {
@@ -103,13 +106,17 @@ function nodesToProject(
 
   const todoNode = findChild(projectNode, node => node.content === 'Todo')
   const waitingNode = findChild(projectNode, node => node.content === 'Waiting')
+  const historyNode = findChild(projectNode, node =>
+    node.content.startsWith(HISTORY_NODE_TITLE)
+  )
 
   const otherNodes = projectNode.children
     .filter(
       nodeId =>
         (!todoNode || todoNode.id !== nodeId) &&
         (!waitingNode || waitingNode.id !== nodeId) &&
-        (!deadlineNode || deadlineNode.id !== nodeId)
+        (!deadlineNode || deadlineNode.id !== nodeId) &&
+        (!historyNode || historyNode.id !== nodeId)
     )
     .map(id => nodeById.get(id)!)
 
@@ -126,10 +133,6 @@ function nodesToProject(
     ? waitingNode.children.map(id => nodesToWaiting(id, projectNode, nodeById))
     : []
 
-  const logsNode = findChild(projectNode, node =>
-    node.content.startsWith('Logs')
-  )
-
   return {
     type: 'project',
     node: projectNode,
@@ -141,7 +144,10 @@ function nodesToProject(
     waiting,
     deadline,
     informationString,
-    logsNodeId: logsNode ? logsNode.id : undefined
+    historyNodeId: historyNode ? historyNode.id : undefined,
+    history: historyNode
+      ? historyNode.children.map(id => nodeById.get(id)!)
+      : []
   }
 }
 
@@ -161,23 +167,6 @@ function getDeadline(deadlineNode?: Node) {
   }
 
   return new Date(dateString)
-}
-
-function nodeToStringTree(node: Node, nodeById: Map<string, Node>) {
-  let tree = ''
-  const addNodeToTree = (node: Node, indent: number) => {
-    tree += new Array(indent).join(' ')
-    tree += node.content + '\n'
-    node.children
-      .map(id => nodeById.get(id)!)
-      .forEach(childNode => {
-        addNodeToTree(childNode, indent + 4)
-      })
-  }
-
-  addNodeToTree(node, 0)
-
-  return tree
 }
 
 function nodesToTodo(
@@ -266,6 +255,23 @@ function nodesToWaiting(
     deadline,
     informationString
   }
+}
+
+function nodeToStringTree(node: Node, nodeById: Map<string, Node>) {
+  let tree = ''
+  const addNodeToTree = (node: Node, indent: number) => {
+    tree += new Array(indent).join(' ')
+    tree += node.content + '\n'
+    node.children
+      .map(id => nodeById.get(id)!)
+      .forEach(childNode => {
+        addNodeToTree(childNode, indent + 4)
+      })
+  }
+
+  addNodeToTree(node, 0)
+
+  return tree
 }
 
 export function projectsToFlatEntities(projects: Project[]) {

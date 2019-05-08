@@ -21,6 +21,7 @@ export default {
     projects: ['', ''],
     todo: ['', ''],
     waiting: ['', ''],
+    history: ['', ''],
     q2: ''
   }
 }

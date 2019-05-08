@@ -76,11 +76,14 @@ export const fn = ({ term, display }: any) => {
 }
 
 async function buildLatestIndex() {
-  const dynalistProjectsFilepath = '/tmp/dynalistCurrentState.json'
+  const dynalistProjectsFilepath = '/tmp/dynalistCurrentStateCerebro.json'
 
   const copyCommand = {
     cmd: 'scp',
-    args: ['dev:~/dynalist-automator/tmp/dynalistCurrentState.json', '/tmp']
+    args: [
+      'dev:~/dynalist-automator/tmp/dynalistCurrentState.json',
+      `/tmp/dynalistCurrentStateCerebro.json`
+    ]
   }
   const copyProcess = spawn(copyCommand.cmd, copyCommand.args)
 

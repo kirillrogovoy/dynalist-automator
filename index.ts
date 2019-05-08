@@ -9,6 +9,7 @@ import { defineView } from './view'
 import configExample from './config.example'
 import { join } from 'path'
 import { getViews } from './views'
+import { logActivityEvents } from './activity-logger'
 
 async function main() {
   const firstArg = process.argv[2]
@@ -36,15 +37,23 @@ async function main() {
     map(content => nodesToProjects(content.nodes))
   )
 
-  getActivityStream(projects$, '/tmp/dynalistCurrentState.json').subscribe(
-    event =>
-      console.log(
-        'event',
-        event.type,
-        event.entity.type,
-        event.entity.title,
-        event.type === 'change' ? [event.oldValue, event.newValue] : ''
-      )
+  const activityEvents$ = getActivityStream(
+    projects$,
+    '/tmp/dynalistCurrentState.json'
+  )
+
+  logActivityEvents(api, config.files.source, activityEvents$)
+
+  activityEvents$.subscribe(event =>
+    console.log(
+      'event',
+      event.type,
+      event.entity.type,
+      event.entity.title,
+      event.type === 'change'
+        ? [event.changedKey, event.oldValue, event.newValue]
+        : ''
+    )
   )
 
   startPostingRecurring(

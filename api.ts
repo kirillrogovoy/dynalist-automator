@@ -1,6 +1,7 @@
-import fetch from 'node-fetch'
 import { resolve } from 'url'
+import fetchOrig from 'node-fetch'
 const Queue = require('promise-queue')
+const fetch: typeof fetchOrig = require('@zeit/fetch-retry')(fetchOrig)
 
 export interface API {
   file: {
