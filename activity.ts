@@ -1,10 +1,5 @@
 import { Observable, of } from 'rxjs'
-import {
-  Project,
-  Entity,
-  projectsToFlatEntities,
-  HISTORY_NODE_TITLE
-} from './project'
+import { Project, Entity, projectsToFlatEntities } from './project'
 import { flatMap, share } from 'rxjs/operators'
 import { exists, readFile, writeFile } from 'mz/fs'
 import { diff } from 'deep-diff'

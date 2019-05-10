@@ -6,6 +6,7 @@ const files = {
 
 export default {
   dynalistToken: 'TOKEN',
+  workObjectiveName: 'Skyeng',
   files,
   recurring: {
     source: {

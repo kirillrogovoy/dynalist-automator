@@ -20,13 +20,21 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
         ...defaultParams,
         targetNodeId: config.views[configKey][0],
         getList: projects =>
-          fn(projects.filter(p => p.objectiveNode.content !== 'Skyeng'))
+          fn(
+            projects.filter(
+              p => p.objectiveNode.content !== config.workObjectiveName
+            )
+          )
       },
       {
         ...defaultParams,
         targetNodeId: config.views[configKey][1],
         getList: projects =>
-          fn(projects.filter(p => p.objectiveNode.content === 'Skyeng'))
+          fn(
+            projects.filter(
+              p => p.objectiveNode.content === config.workObjectiveName
+            )
+          )
       }
     ]
   }
@@ -55,7 +63,8 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
           ...done.sort(byModifiedDate)
         ].map(p => ({
           content: `${getURLToNode(p.node)} ${p.title}`,
-          checked: p.node.checked
+          checked: p.node.checked,
+          note: p.status === 'active' ? emojify(':fast_forward:') : ''
         }))
       }
     },
@@ -114,6 +123,7 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
         .filter(
           node => Date.now() - node.created < 2592000000 /* 3 days in ms */
         )
+        .sort((a, b) => (a.created > b.created ? -1 : 1))
     )
   ]
 }

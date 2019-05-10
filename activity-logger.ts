@@ -39,7 +39,9 @@ export function logActivityEvents(
 
 function activityEventToPrintable(activityEvent: ActivityEvent) {
   const { type, entity } = activityEvent
-  const date = dateToDynalistFormat(new Date())
+  const date = dateToDynalistFormat(
+    new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Kiev' }))
+  )
 
   const baseString = `${date} — ${type} — ${entity.type} — ${entity.title}`
   const changeString =
