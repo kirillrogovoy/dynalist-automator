@@ -1,6 +1,12 @@
 import { Node, API, NodeChangeDelete, NodeChangeInsert } from './api'
 import { Project, nodesToProjects, nodesToMap } from './project'
-import { map, filter, throttleTime, distinctUntilChanged } from 'rxjs/operators'
+import {
+  map,
+  filter,
+  distinctUntilChanged,
+  catchError,
+  throttleTime
+} from 'rxjs/operators'
 import { combineLatest, Unsubscribable } from 'rxjs'
 import { PollSubscription } from './polling'
 
@@ -8,6 +14,7 @@ export interface ViewDefinition {
   sourceFileId: string
   targetFileId: string
   targetNodeId: string
+  throttleTime?: number
   getList(projects: Project[]): NodeProposal[]
 }
 
@@ -47,6 +54,9 @@ export function defineView(
       filter(
         ([nodes, proposals]) => !isNodesFittingProposals(nodes, proposals)
       ),
+      viewDefinition.throttleTime
+        ? throttleTime(viewDefinition.throttleTime)
+        : map(x => x),
       map(([nodes, proposals]) => {
         const nodeRemovals = nodes.map(
           (node): NodeChangeDelete => ({
@@ -71,16 +81,18 @@ export function defineView(
           changes: [...nodeInserts, ...nodeRemovals]
         }
       }),
-      distinctUntilChanged() // avoid repeating the same requests
+      distinctUntilChanged(), // avoid repeating the same requests
+      map(({ fileId, changes }) => {
+        api.file.change(fileId, changes).catch((e: Error) => {
+          if (e.toString().includes("Can't find node with id")) {
+            return
+          }
+          throw e
+        })
+      }),
+      catchError((_, caught) => caught)
     )
-    .subscribe(({ fileId, changes }) => {
-      api.file.change(fileId, changes).catch((e: Error) => {
-        if (e.toString().includes("Can't find node with id")) {
-          return
-        }
-        throw e
-      })
-    })
+    .subscribe()
 }
 
 function isNodesFittingProposals(nodes: Node[], proposals: NodeProposal[]) {

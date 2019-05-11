@@ -13,11 +13,13 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
 
   function generateLifeWorkView(
     configKey: keyof typeof configExample.views,
-    fn: (projects: Project[]) => NodeProposal[]
+    fn: (projects: Project[]) => NodeProposal[],
+    viewDefinition: Partial<ViewDefinition> = {}
   ): [ViewDefinition, ViewDefinition] {
     return [
       {
         ...defaultParams,
+        ...viewDefinition,
         targetNodeId: config.views[configKey][0],
         getList: projects =>
           fn(
@@ -28,6 +30,7 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
       },
       {
         ...defaultParams,
+        ...viewDefinition,
         targetNodeId: config.views[configKey][1],
         getList: projects =>
           fn(
@@ -116,14 +119,19 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
         })
         .flat()
     ),
-    ...generateLifeWorkView('history', projects =>
-      projects
-        .map(project => project.history)
-        .flat()
-        .filter(
-          node => Date.now() - node.created < 2592000000 /* 3 days in ms */
-        )
-        .sort((a, b) => (a.created > b.created ? -1 : 1))
+    ...generateLifeWorkView(
+      'history',
+      projects =>
+        projects
+          .map(project => project.history)
+          .flat()
+          .filter(
+            node => Date.now() - node.created < 86400000 /* 24 hours in ms */
+          )
+          .sort((a, b) => (a.created > b.created ? -1 : 1)),
+      {
+        throttleTime: 60 * 1000
+      }
     )
   ]
 }

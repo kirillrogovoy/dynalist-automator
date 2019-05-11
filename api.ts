@@ -114,6 +114,7 @@ export function createApi(options: APIOptions): API {
         )
       },
       change(id: string, changes: NodeChange[]) {
+        console.log('change api call', changes)
         if (changes.length === 0) {
           return Promise.resolve({
             newNodeIds: []

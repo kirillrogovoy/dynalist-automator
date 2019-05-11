@@ -30,11 +30,15 @@ export function startPolling(api: API, fileIds: string[]): PollSubscription {
             return
           }
 
-          const [, contents] = await Promise.all([
-            timeoutTimer(),
-            getContents()
-          ])
-          contents.forEach(c => observer.next(c))
+          try {
+            const [, contents] = await Promise.all([
+              timeoutTimer(),
+              getContents()
+            ])
+            contents.forEach(c => observer.next(c))
+          } catch (e) {
+            console.error('API error', e)
+          }
         }
       })()
 

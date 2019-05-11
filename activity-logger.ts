@@ -110,6 +110,7 @@ function activityEventToPrintable(activityEvent: ActivityEvent) {
         ]
           .flat()
           .join('')
+          .trim()
       : ''
 
   return {
