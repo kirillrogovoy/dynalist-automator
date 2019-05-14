@@ -85,7 +85,7 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
           const todoWarnings =
             readyTodos.length === 0 &&
             plannedTodos.length === 0 &&
-            project.waiting.filter(w => w.status === 'active').length === 0
+            project.waiting.filter(w => w.status !== 'done').length === 0
               ? ['[no next task defined]']
               : []
 

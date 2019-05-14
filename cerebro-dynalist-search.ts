@@ -1,12 +1,12 @@
 import configExample from './config.example'
 import { join } from 'path'
-import { readFileSync, existsSync } from 'fs'
+import { readFile, exists } from 'mz/fs'
 import { Project, projectsToFlatEntities, Entity } from './project'
 import lunr from 'lunr'
 import { getURLFromID } from './node-url'
 import { execSync, spawn } from 'child_process'
 import { merge, fromEvent, interval, Subject } from 'rxjs'
-import { throttleTime, mapTo } from 'rxjs/operators'
+import { throttleTime } from 'rxjs/operators'
 
 const configPath = join(__dirname, '../config.prod.js')
 const config: typeof configExample = require(configPath)
@@ -88,12 +88,12 @@ async function buildLatestIndex() {
   const copyProcess = spawn(copyCommand.cmd, copyCommand.args)
 
   const copyProcessPromise = fromEvent(copyProcess, 'close').toPromise()
-  if (!existsSync(dynalistProjectsFilepath)) {
+  if (!await exists(dynalistProjectsFilepath)) {
     await copyProcessPromise
   }
 
   const projects: Project[] = JSON.parse(
-    readFileSync(dynalistProjectsFilepath).toString()
+    (await readFile(dynalistProjectsFilepath)).toString()
   )
   entities = projectsToFlatEntities(projects)
 
