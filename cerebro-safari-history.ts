@@ -1,12 +1,24 @@
 import { getActivityStream } from './safari-history';
 import { createWriteStream } from 'fs';
 
-const historyFileHandle = createWriteStream("/Users/kirillrogovoy/safari-history.txt", {flags:'a'});
+console.log('init')
+export const initializeAsync = () => {
+  console.log('load')
+  // if ((process as any).SAFARI_HISTORY_LOADED) {
+    // return
+  // }
 
-getActivityStream().subscribe(tab => {
-  const tabJson = JSON.stringify(tab)
-  historyFileHandle.write(`${tabJson}\n`)
-})
+  console.log('load 2')
+  ;(process as any).SAFARI_HISTORY_LOADED = true
+
+  const historyFileHandle = createWriteStream("/Users/kirillrogovoy/safari-history.txt", {flags:'a'});
+
+  getActivityStream().subscribe(tab => {
+    const tabJson = JSON.stringify(tab)
+    console.log('writing to file!') // 5!
+    historyFileHandle.write(`${tabJson}\n`)
+  })
+}
 
 export const fn = () => {
 }

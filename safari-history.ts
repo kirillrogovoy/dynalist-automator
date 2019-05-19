@@ -1,7 +1,7 @@
 import { exec } from 'mz/child_process';
 import promisify from 'util.promisify';
 import { interval } from 'rxjs';
-import { flatMap, map, filter, mergeAll } from 'rxjs/operators';
+import { flatMap, map, filter, mergeAll, share } from 'rxjs/operators';
 import { diff, Diff, DiffNew } from 'deep-diff';
 const execP = promisify(exec)
 

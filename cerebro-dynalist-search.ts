@@ -18,11 +18,12 @@ buildLatestIndex()
 const updateInterval$ = interval(60 * 1000)
 const searchEvents$ = new Subject<void>()
 
-merge(updateInterval$.pipe(), searchEvents$)
-  .pipe(throttleTime(10 * 1000))
-  .subscribe(() => {
-    buildLatestIndex()
-  })
+export const initializeAsync = () =>
+  merge(updateInterval$.pipe(), searchEvents$)
+    .pipe(throttleTime(10 * 1000))
+    .subscribe(() => {
+      buildLatestIndex()
+    })
 
 export const fn = ({ term, display }: any) => {
   searchEvents$.next()
