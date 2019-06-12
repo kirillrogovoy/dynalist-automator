@@ -126,7 +126,7 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
           .map(project => project.history)
           .flat()
           .filter(
-            node => Date.now() - node.created < 86400000 /* 24 hours in ms */
+            node => Date.now() - node.created < 129600000 /* 36 hours in ms */
           )
           .sort((a, b) => (a.created > b.created ? -1 : 1)),
       {

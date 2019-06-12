@@ -19,7 +19,7 @@ const updateInterval$ = interval(60 * 1000)
 const searchEvents$ = new Subject<void>()
 
 export const initializeAsync = () =>
-  merge(updateInterval$.pipe(), searchEvents$)
+  merge(updateInterval$, searchEvents$)
     .pipe(throttleTime(10 * 1000))
     .subscribe(() => {
       buildLatestIndex()

@@ -8,7 +8,7 @@ import { Observable } from 'rxjs'
 import { HISTORY_NODE_TITLE } from './project'
 import { dateToDynalistFormat } from './date'
 import { diffLines } from 'diff'
-import { groupBy, mergeMap, map, buffer, debounceTime } from 'rxjs/operators'
+import { groupBy, mergeMap, map, buffer, debounceTime, filter } from 'rxjs/operators'
 
 export function logActivityEvents(
   api: API,
@@ -17,6 +17,12 @@ export function logActivityEvents(
 ) {
   return activityEvents$
     .pipe(
+      filter(event => {
+        const projectCreatedAt = event.project.node.created
+        const now = Date.now()
+
+        return now - projectCreatedAt > 60000
+      }),
       groupBy(event => {
         const nodeId = event.entity.node.id
         let changedKey =
