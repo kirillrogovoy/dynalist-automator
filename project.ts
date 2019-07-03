@@ -1,5 +1,5 @@
 import { Node } from './api'
-import { extractDateString, hasDateInPast, hasDate } from './date'
+import { extractDateString, hasDateInPast, hasDate, diffDays } from './date'
 
 export const HISTORY_NODE_TITLE = 'History'
 
@@ -22,6 +22,7 @@ export interface Project {
 
 export interface Todo {
   type: 'todo'
+  priorityScore: number
   node: Node
   projectNode: Node
   title: string
@@ -126,7 +127,7 @@ function nodesToProject(
 
   const todo = todoNode
     ? todoNode.children.map(id =>
-        nodesToTodo(id, todoNode, projectNode, nodeById)
+        nodesToTodo(id, todoNode, projectNode, nodeById, getPriorityScore(labels, deadline))
       )
     : []
   const waiting = waitingNode
@@ -173,7 +174,8 @@ function nodesToTodo(
   nodeId: string,
   todoListNode: Node,
   projectNode: Node,
-  nodeById: Map<string, Node>
+  nodeById: Map<string, Node>,
+  projectPriorityScore: number,
 ): Todo {
   const findChild = findChildUsing(nodeById)
 
@@ -205,8 +207,11 @@ function nodesToTodo(
 
   const status = todoNode.checked ? 'done' : isReady ? 'ready' : 'planned'
 
+  const priorityScore = projectPriorityScore + getPriorityScore(labels, deadline)
+
   return {
     type: 'todo',
+    priorityScore,
     node: todoNode,
     projectNode,
     title: todoNode.content,
@@ -290,4 +295,11 @@ export function projectsToFlatEntities(projects: Project[]) {
   }
 
   return entitiesByNodeId
+}
+
+function getPriorityScore(labels: string[], deadline: Date | undefined) {
+  const doNowScore = (labels.includes('do-now') ? 100 : 0)
+  const blockerScore = (labels.includes('blocker') ? 10 : 0)
+  const deadlineScore = (deadline ? Math.max(10 - (diffDays(new Date(), deadline!)), 0) : 0)
+  return doNowScore + blockerScore + deadlineScore
 }

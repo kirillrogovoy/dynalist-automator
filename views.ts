@@ -35,7 +35,7 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
         getList: projects =>
           fn(
             projects.filter(
-              p => p.objectiveNode.content === config.workObjectiveName
+              p => p.objectiveNode.content === config.workObjectiveName || p.labels.includes('work')
             )
           )
       }
@@ -90,11 +90,20 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
               : []
 
           return [
-            ...readyTodos.map(todo => ({
-              content: emojify(`:green_apple: ${todo.title}`)
-            })),
-            ...todoWarnings.map(warining => ({
-              content: emojify(`:warning: ${warining}`)
+            ...readyTodos.map(todo => {
+              const emojis = [
+                'green_apple',
+                project.deadline || todo.deadline ? 'hourglass' : null,
+                project.labels.includes('blocker') || todo.labels.includes('blocker') ? 'no_entry_sign' : null,
+                project.labels.includes('do-now') || todo.labels.includes('do-now') ? 'fire' : null,
+              ].filter(x => !!x).map(x => `:${x}:`).join(' ')
+              return {
+                content: emojify(`${emojis} ${todo.title}`),
+                priorityScore: todo.priorityScore,
+              }}),
+            ...todoWarnings.map(warning => ({
+              content: emojify(`:warning: ${warning}`),
+              priorityScore: Number.POSITIVE_INFINITY,
             }))
           ].map(p => ({
             ...p,
@@ -102,6 +111,7 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
           }))
         })
         .flat()
+        .sort((a, b) => b.priorityScore - a.priorityScore)
     ),
     ...generateLifeWorkView('waiting', projects =>
       projects

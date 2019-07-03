@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { format, differenceInDays } from 'date-fns'
 
 const dateRegexp = /\!\((\d{4}-\d{2}-\d{2})\)/
 
@@ -32,4 +32,8 @@ export function extractDateString(input: string) {
 
 export function dateToDynalistFormat(date: Date) {
   return `!(${format(date, 'YYYY-MM-DD HH:mm:ss')})`
+}
+
+export function diffDays(d1: Date, d2: Date) {
+  return Math.abs(differenceInDays(d1, d2))
 }
