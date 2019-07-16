@@ -23,6 +23,9 @@ export default {
     todo: ['', ''],
     waiting: ['', ''],
     history: ['', ''],
-    q2: ''
+    q2: '',
+    q2_unplanned: '',
+    q3: '',
+    q3_unplanned: '',
   }
 }

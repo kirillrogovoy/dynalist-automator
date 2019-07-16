@@ -35,7 +35,7 @@ export interface Node {
   children: NodeID[]
   checked: boolean
   created: number
-  modified: number
+  modified: number // ms
 }
 
 export interface NodeChangeInsert {

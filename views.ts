@@ -4,6 +4,7 @@ import { Project } from './project'
 import { getURLFromID } from './node-url'
 import { Node } from './api'
 import { emojify } from 'node-emoji'
+import {hasDate} from './date';
 
 export function getViews(config: typeof configExample): ViewDefinition[] {
   const defaultParams = {
@@ -32,18 +33,17 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
         ...defaultParams,
         ...viewDefinition,
         targetNodeId: config.views[configKey][1],
-        getList: projects =>
-          fn(
-            projects.filter(
-              p => p.objectiveNode.content === config.workObjectiveName || p.labels.includes('work')
-            )
-          )
+        getList: projects => fn(projects.filter(isWorkProject))
       }
     ]
   }
 
   function getURLToNode(node: Node) {
     return `[\u200B](${getURLFromID(defaultParams.sourceFileId, node.id)})`
+  }
+
+  function isWorkProject(p: Project) {
+    return p.objectiveNode.content === config.workObjectiveName || p.labels.includes('work')
   }
 
   return [
@@ -55,7 +55,7 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
     ),
     {
       ...defaultParams,
-      targetNodeId: config.views['q2'],
+      targetNodeId: config.views.q2,
       getList: projects => {
         projects = projects.filter(p => p.labels.includes('q2'))
         const done = projects.filter(p => p.status === 'done')
@@ -71,8 +71,62 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
         }))
       }
     },
+    {
+      ...defaultParams,
+      targetNodeId: config.views.q2_unplanned,
+      getList: projects => {
+        projects = projects.filter(p => !isWorkProject(p) && !p.labels.includes('q2') && ((p.status === 'done' && p.node.modified > new Date('2019-04-01').getTime()) || (p.status === 'active')))
+        const done = projects.filter(p => p.status === 'done')
+        const notDone = projects.filter(p => p.status !== 'done')
+
+        return [
+          ...notDone.sort(byModifiedDate),
+          ...done.sort(byModifiedDate)
+        ].map(p => ({
+          content: `${getURLToNode(p.node)} ${p.title}`,
+          checked: p.node.checked,
+          note: p.status === 'active' ? emojify(':fast_forward:') : ''
+        }))
+      }
+    },
+    {
+      ...defaultParams,
+      targetNodeId: config.views.q3,
+      getList: projects => {
+        projects = projects.filter(p => p.labels.includes('q3'))
+        const done = projects.filter(p => p.status === 'done')
+        const notDone = projects.filter(p => p.status !== 'done')
+
+        return [
+          ...notDone.sort((a, b) => a.status === b.status ? 0 : a.status === 'active' ? -1 : b.status === 'active' ? 1 : 0),
+          ...done.sort(byModifiedDate)
+        ].map(p => ({
+          content: `${getURLToNode(p.node)} ${p.title}`,
+          checked: p.node.checked,
+          note: p.status === 'active' ? emojify(':fast_forward:') : ''
+        }))
+      }
+    },
+    {
+      ...defaultParams,
+      targetNodeId: config.views.q3_unplanned,
+      getList: projects => {
+        projects = projects.filter(p => !isWorkProject(p) && !p.labels.includes('q3') && ((p.status === 'done' && p.node.modified > new Date('2019-07-01').getTime()) || (p.status === 'active')))
+        const done = projects.filter(p => p.status === 'done')
+        const notDone = projects.filter(p => p.status !== 'done')
+
+        return [
+          ...notDone.sort(byModifiedDate),
+          ...done.sort(byModifiedDate)
+        ].map(p => ({
+          content: `${getURLToNode(p.node)} ${p.title}`,
+          checked: p.node.checked,
+          note: p.status === 'active' ? emojify(':fast_forward:') : ''
+        }))
+      }
+    },
     ...generateLifeWorkView('todo', projects =>
-      projects
+      [ ...projects
         .filter(p => p.status === 'active')
         .sort(byModifiedDate)
         .map(project => {
@@ -111,7 +165,19 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
           }))
         })
         .flat()
-        .sort((a, b) => b.priorityScore - a.priorityScore)
+        .sort((a, b) => b.priorityScore - a.priorityScore),
+      ...projects
+        .filter(p => p.status === 'inactive')
+        .sort(byModifiedDate)
+        .flatMap(project => project.todo
+          .filter(todo => todo.status === 'ready'  && hasDate(todo.title))
+          .map(todo => ({
+            content: emojify(`:hourglass: ${todo.title}`),
+            priorityScore: todo.priorityScore,
+            note: `${getURLToNode(project.node)} ${project.title}`,
+          }))
+        )
+      ]
     ),
     ...generateLifeWorkView('waiting', projects =>
       projects

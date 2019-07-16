@@ -59,7 +59,7 @@ export const fn = ({ term, display }: any) => {
         tell application "Safari"
               tell front window
                   set current tab to tab 1
-                  set URL of current tab to "${projectUrl}"
+                  do JavaScript "Array.from(document.querySelectorAll(\\"div.DocumentItem-title\\")).find(x => x.innerText.includes(\\"Getting Things Done\\")).click();setTimeout(() => { location.href = \\"${projectUrl}\\" }, 1000)" in current tab
               end tell
         end tell
       `
@@ -69,6 +69,7 @@ export const fn = ({ term, display }: any) => {
       subtitle: `${project.status} — ${project.title}`,
       icon: icons[entity.type],
       onSelect() {
+        console.log('executing', appleScript);
         execSync(`osascript -e '${appleScript}'`)
       }
       // getPreview: () => '<pre>' + 'OMG' + '</pre>'
