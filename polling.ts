@@ -12,7 +12,7 @@ export interface PollSubscription {
 }
 
 export function startPolling(api: API, fileIds: string[]): PollSubscription {
-  const maxFileRequestsPerMinute = 60
+  const maxFileRequestsPerMinute = 30
   const filesCount = fileIds.length
   const maxRequestsPerFilePerMinute = maxFileRequestsPerMinute / filesCount
   const bestInterval = 60 / maxRequestsPerFilePerMinute
@@ -59,6 +59,7 @@ function getContentOfMultipleFiles(
         .content(fileId)
         .then(nodes => ({ fileId, nodes }))
         .catch((e: Error) => {
+          console.log('error fetching content', e);
           if (e.toString().includes('status = 520')) {
             return {
               fileId,

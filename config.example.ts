@@ -27,5 +27,7 @@ export default {
     q2_unplanned: '',
     q3: '',
     q3_unplanned: '',
+    q4: '',
+    q4_unplanned: '',
   }
 }

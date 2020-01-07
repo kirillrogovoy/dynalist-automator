@@ -61,10 +61,10 @@ export function nodesToProjects(nodes: Node[]): Project[] {
       const horizon4 = nodeById.get(horizon4id)!
       for (let horizon3id of horizon4.children) {
         const horizon3 = nodeById.get(horizon3id)!
-        for (let projectId of findChild(
+        for (let projectId of (findChild(
           horizon3,
           node => node.content === 'Projects'
-        )!.children) {
+        ) || { children: [] }).children) {
           const project = nodesToProject(projectId, horizon3, nodeById)
           projects.push(project)
         }
@@ -300,6 +300,6 @@ export function projectsToFlatEntities(projects: Project[]) {
 function getPriorityScore(labels: string[], deadline: Date | undefined) {
   const doNowScore = (labels.includes('do-now') ? 100 : 0)
   const blockerScore = (labels.includes('blocker') ? 10 : 0)
-  const deadlineScore = (deadline ? Math.max(10 - (diffDays(new Date(), deadline!)), 0) : 0)
+  const deadlineScore = (deadline ? 5 + Math.max(10 - (diffDays(new Date(), deadline!)), 0) : 0)
   return doNowScore + blockerScore + deadlineScore
 }
