@@ -53,78 +53,6 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
         .sort(byModifiedDate)
         .map(p => ({ content: `${getURLToNode(p.node)} ${p.title}` }))
     ),
-    {
-      ...defaultParams,
-      targetNodeId: config.views.q3,
-      getList: projects => {
-        projects = projects.filter(p => p.labels.includes('q3'))
-        const done = projects.filter(p => p.status === 'done')
-        const notDone = projects.filter(p => p.status !== 'done')
-
-        return [
-          ...notDone.sort((a, b) => a.status === b.status ? 0 : a.status === 'active' ? -1 : b.status === 'active' ? 1 : 0),
-          ...done.sort(byModifiedDate)
-        ].map(p => ({
-          content: `${getURLToNode(p.node)} ${p.title}`,
-          checked: p.node.checked,
-          note: p.status === 'active' ? emojify(':fast_forward:') : ''
-        }))
-      }
-    },
-    {
-      ...defaultParams,
-      targetNodeId: config.views.q3_unplanned,
-      getList: projects => {
-        projects = projects.filter(p => !isWorkProject(p) && !p.labels.includes('q3') && ((p.status === 'done' && p.node.modified > new Date('2019-07-01').getTime()) || (p.status === 'active')))
-        const done = projects.filter(p => p.status === 'done')
-        const notDone = projects.filter(p => p.status !== 'done')
-
-        return [
-          ...notDone.sort(byModifiedDate),
-          ...done.sort(byModifiedDate)
-        ].map(p => ({
-          content: `${getURLToNode(p.node)} ${p.title}`,
-          checked: p.node.checked,
-          note: p.status === 'active' ? emojify(':fast_forward:') : ''
-        }))
-      }
-    },
-    {
-      ...defaultParams,
-      targetNodeId: config.views.q4,
-      getList: projects => {
-        projects = projects.filter(p => p.labels.includes('q4'))
-        const done = projects.filter(p => p.status === 'done')
-        const notDone = projects.filter(p => p.status !== 'done')
-
-        return [
-          ...notDone.sort((a, b) => a.status === b.status ? 0 : a.status === 'active' ? -1 : b.status === 'active' ? 1 : 0),
-          ...done.sort(byModifiedDate)
-        ].map(p => ({
-          content: `${getURLToNode(p.node)} ${p.title}`,
-          checked: p.node.checked,
-          note: p.status === 'active' ? emojify(':fast_forward:') : ''
-        }))
-      }
-    },
-    {
-      ...defaultParams,
-      targetNodeId: config.views.q4_unplanned,
-      getList: projects => {
-        projects = projects.filter(p => !isWorkProject(p) && !p.labels.includes('q4') && ((p.status === 'done' && p.node.modified > new Date('2019-10-01').getTime()) || (p.status === 'active')))
-        const done = projects.filter(p => p.status === 'done')
-        const notDone = projects.filter(p => p.status !== 'done')
-
-        return [
-          ...notDone.sort(byModifiedDate),
-          ...done.sort(byModifiedDate)
-        ].map(p => ({
-          content: `${getURLToNode(p.node)} ${p.title}`,
-          checked: p.node.checked,
-          note: p.status === 'active' ? emojify(':fast_forward:') : ''
-        }))
-      }
-    },
     ...generateLifeWorkView('todo', projects =>
       [ ...projects
         .filter(p => p.status === 'active')
@@ -195,20 +123,6 @@ export function getViews(config: typeof configExample): ViewDefinition[] {
         })
         .flat()
     ),
-    // ...generateLifeWorkView(
-      // 'history',
-      // projects =>
-        // projects
-          // .map(project => project.history)
-          // .flat()
-          // .filter(
-            // node => Date.now() - node.created < 129600000 [> 36 hours in ms <]
-          // )
-          // .sort((a, b) => (a.created > b.created ? -1 : 1)),
-      // {
-        // throttleTime: 60 * 1000
-      // }
-    // )
   ]
 }
 
