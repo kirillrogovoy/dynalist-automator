@@ -102,6 +102,7 @@ export function createApi(options: APIOptions): API {
         }).then(x => x.files)
       },
       content(id: string): Promise<Node[]> {
+        console.log('calling api.content() for id', id);
         return makeRequest({
           urlFragment: 'doc/read',
           payload: { file_id: id },

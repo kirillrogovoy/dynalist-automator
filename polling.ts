@@ -16,9 +16,9 @@ export function startPolling(api: API, fileIds: string[]): PollSubscription {
   const filesCount = fileIds.length
   const maxRequestsPerFilePerMinute = maxFileRequestsPerMinute / filesCount
   const bestInterval = 60 / maxRequestsPerFilePerMinute
-  const bestIntervalAdjasted = Math.ceil(bestInterval * 1.3)
+  const bestIntervalAdjusted = Math.ceil(bestInterval * 1.3)
 
-  const timeoutTimer = () => timer(bestIntervalAdjasted * 1000).toPromise()
+  const timeoutTimer = () => timer(bestIntervalAdjusted * 1000).toPromise()
   const getContents = () => getContentOfMultipleFiles(api, fileIds)
 
   return {
@@ -35,6 +35,7 @@ export function startPolling(api: API, fileIds: string[]): PollSubscription {
               timeoutTimer(),
               getContents()
             ])
+            console.log('got fresh file content (len)', contents.length)
             contents.forEach(c => observer.next(c))
           } catch (e) {
             console.error('API error', e)

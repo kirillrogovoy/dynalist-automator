@@ -49,9 +49,13 @@ export const fn = ({ term, display }: SearchEvent) => {
         return
       }
 
-      let entitiesResult = index
-        .search(normalizedTerm)
-        .sort((a, b) => (a.score > b.score ? -1 : 1))
+      let searchResult: lunr.Index.Result[]
+      try {
+         searchResult = index.search(normalizedTerm)
+      } catch (e) {
+        searchResult = []
+      }
+      let entitiesResult = searchResult.sort((a, b) => (a.score > b.score ? -1 : 1))
         .map(item => entities[item.ref])
         .slice(0, 10)
 
@@ -110,6 +114,8 @@ function buildLatestIndex() {
       dynalistProjectsFilepath
     ]
   }
+  // NOTE: maybe scp removes the local file before syncing and thus any failed sync results in
+  // a broken index because we've got either an empty or a corrupted file to parse
 
   console.log('SYNC: scp start');
   const copyProcess = spawn(copyCommand.cmd, copyCommand.args)
@@ -124,7 +130,8 @@ async function buildIndexFromFile() {
 
   let projects: Project[]
   try {
-    projects = JSON.parse(dynalistProjectsJson)
+    const projectsNew = JSON.parse(dynalistProjectsJson)
+    projects = projectsNew
     console.log('SYNC: JSON parsed');
   } catch (e) {
     console.log('JSON.parse error', e.toString())

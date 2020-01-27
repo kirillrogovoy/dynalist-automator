@@ -1,7 +1,7 @@
 require('source-map-support').install()
 import { createApi } from './api'
 import { startPolling } from './polling'
-import { startPostingRecurring } from './recurring'
+// import { startPostingRecurring } from './recurring'
 import { filter, map } from 'rxjs/operators'
 import { nodesToProjects } from './project'
 import { getActivityStream } from './activity'
@@ -56,12 +56,12 @@ async function main() {
     )
   )
 
-  startPostingRecurring(
-    api,
-    pollSubscription,
-    config.recurring.source,
-    config.recurring.target
-  )
+  // startPostingRecurring(
+    // api,
+    // pollSubscription,
+    // config.recurring.source,
+    // config.recurring.target
+  // )
 
   for (let viewDefinition of getViews(config)) {
     defineView(api, pollSubscription, viewDefinition)

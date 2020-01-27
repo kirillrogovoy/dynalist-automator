@@ -81,8 +81,9 @@ export function defineView(
           changes: [...nodeInserts, ...nodeRemovals]
         }
       }),
-      distinctUntilChanged(), // avoid repeating the same requests
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)), // avoid repeating the same requests
       map(({ fileId, changes }) => {
+        console.log('posting new changes to the view', viewDefinition.targetNodeId, changes.length);
         api.file.change(fileId, changes).catch((e: Error) => {
           if (e.toString().includes("Can't find node with id")) {
             return
